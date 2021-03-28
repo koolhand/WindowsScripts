@@ -18,7 +18,8 @@ For a given folder, export a report of...
 - Get-FileHash https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-filehash
 - https://pentestlab.blog/tag/authenticode/ for the limitations / workarounds
 
-```enum System.Management.Automation.SignatureStatus
+```
+enum System.Management.Automation.SignatureStatus
 Name value
 ---- -----
 Valid 0
