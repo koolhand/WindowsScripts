@@ -57,7 +57,7 @@ Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles `
 	Get-FileHash -Path $_.Path
   } `
   | Select-Object Hash,Path `
-  | Sort-Object Hash,Path `
+  | Sort-Object Path,Hash `
   | Export-Csv (Join-Path $ReportDirectory $CSVHashes) -UseCulture -NoTypeInformation
 
 Write-Host '...saved to' (Join-Path $ReportDirectory $CSVHashes)
