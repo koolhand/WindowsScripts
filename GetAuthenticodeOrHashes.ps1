@@ -25,19 +25,16 @@ param (
 
 Write-Host 'Finding valid Authenticode signers...'
 
-Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles `
-  | Where-Object { $_.Length -ne 0 } ` # exclude zero-byte files
-  | ForEach-Object {
-    Get-AuthenticodeSignature $_ 
-  } `
-  | Where-Object { $_.status -eq "Valid" } `
-  | Select-Object `
-    -Unique `
-      @{ Name='SignerIssuer';       Expression={($_.SignerCertificate.Issuer)} }, `
-      @{ Name='SignerSerialNumber'; Expression={($_.SignerCertificate.SerialNumber)} }, `
-      @{ Name='SignerThumbprint';   Expression={($_.SignerCertificate.Thumbprint)} } `
-  | Sort-Object SignerIssuer,SignerSerialNumber,SignerThumprint `
-  | Export-Csv (Join-Path $ReportDirectory $CSVSigners) -UseCulture -NoTypeInformation
+Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles |
+  Where-Object { $_.Length -ne 0 } |                 # exclude zero-byte files
+  ForEach-Object { Get-AuthenticodeSignature $_ } |
+  Where-Object { $_.status -eq "Valid" } |
+  Select-Object -Unique `
+      @{ Name='SignerIssuer';       Expression={($_.SignerCertificate.Issuer)} },
+      @{ Name='SignerSerialNumber'; Expression={($_.SignerCertificate.SerialNumber)} },
+      @{ Name='SignerThumbprint';   Expression={($_.SignerCertificate.Thumbprint)} } |
+  Sort-Object SignerIssuer,SignerSerialNumber,SignerThumprint |
+  Export-Csv (Join-Path $ReportDirectory $CSVSigners) -UseCulture -NoTypeInformation
 
 Write-Host '...saved to' (Join-Path $ReportDirectory $CSVSigners)
 
@@ -46,19 +43,15 @@ Write-Host '...saved to' (Join-Path $ReportDirectory $CSVSigners)
 Write-Host ''
 Write-Host 'Generating SHA-256 Hashes for files without valid Authenticode signatures...'
 
-Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles `
-  | Where-Object { $_.Length -ne 0 } ` # exclude zero-byte files
-  | ForEach-Object {
-    Get-AuthenticodeSignature $_ 
-  } `
-  | Where-Object { $_.status -ne "Valid" } `
-  | Select-Object Path `
-  | ForEach-Object {
-	Get-FileHash -Path $_.Path
-  } `
-  | Select-Object Hash,Path `
-  | Sort-Object Path,Hash `
-  | Export-Csv (Join-Path $ReportDirectory $CSVHashes) -UseCulture -NoTypeInformation
+Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles |
+  Where-Object { $_.Length -ne 0 } |                  # exclude zero-byte files
+  ForEach-Object { Get-AuthenticodeSignature $_ } |
+  Where-Object { $_.status -ne "Valid" } |
+  Select-Object Path |
+  ForEach-Object { Get-FileHash -Path $_.Path } |
+  Select-Object Hash,Path |
+  Sort-Object Path,Hash |
+  Export-Csv (Join-Path $ReportDirectory $CSVHashes) -UseCulture -NoTypeInformation
 
 Write-Host '...saved to' (Join-Path $ReportDirectory $CSVHashes)
 
@@ -67,9 +60,9 @@ Write-Host '...saved to' (Join-Path $ReportDirectory $CSVHashes)
 Write-Host ''
 Write-Host 'Listing zero-byte files...'
 
-Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles `
-  | Where-Object { $_.Length -eq 0 } `
-  | Select-Object FullName `
-  | Export-Csv (Join-Path $ReportDirectory $CSVZeroByteFiles) -UseCulture -NoTypeInformation
+Get-ChildItem -Recurse -File -Path $ScanDirectory -Include $IncludeFiles |
+  Where-Object { $_.Length -eq 0 } |
+  Select-Object FullName |
+  Export-Csv (Join-Path $ReportDirectory $CSVZeroByteFiles) -UseCulture -NoTypeInformation
 
 Write-Host '...saved to' (Join-Path $ReportDirectory $CSVZeroByteFiles)
